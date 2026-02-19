@@ -1,0 +1,52 @@
+# ============================================================
+# DÉMO 3/4 — Variables : sortie dynamique entre steps
+# ============================================================
+# Un step peut PRODUIRE une valeur qu'un step suivant
+# peut LIRE. Mécanisme : GITHUB_OUTPUT
+#
+# Écrire une valeur (dans step A) :
+#   echo "ma_cle=ma_valeur" >> $GITHUB_OUTPUT
+#
+# Lire la valeur (dans step B) :
+#   ${{ steps.id_step_a.outputs.ma_cle }}
+#
+# Très utile pour passer des infos entre steps :
+# version calculée, numéro de build, date, etc.
+# ============================================================
+
+name: "19 · Sorties dynamiques entre steps"
+
+on: workflow_dispatch
+
+jobs:
+  demo-outputs:
+    name: "Passer des valeurs entre steps"
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step A — Produit deux valeurs de sortie
+      - name: "🏷️ Step A — Calculer la version"
+        id: calcul-version           # ← l'id permet de référencer ce step
+        run: |
+          DATE=$(date +%Y%m%d)
+          VERSION="1.0.${{ github.run_number }}"
+          echo "📌 Version calculée : $VERSION"
+          echo "📌 Date du build    : $DATE"
+
+          # Écrire les sorties dans GITHUB_OUTPUT
+          echo "version=$VERSION"  >> $GITHUB_OUTPUT
+          echo "date_build=$DATE"  >> $GITHUB_OUTPUT
+
+      # Step B — Lit les valeurs produites par step A
+      - name: "📖 Step B — Utiliser la version calculée"
+        run: |
+          echo "=== Valeurs reçues depuis Step A ==="
+          echo "Version    : ${{ steps.calcul-version.outputs.version }}"
+          echo "Date build : ${{ steps.calcul-version.outputs.date_build }}"
+
+      # Step C — Utilise aussi les valeurs
+      - name: "🏷️ Step C — Créer un tag avec la version"
+        run: |
+          VERSION="${{ steps.calcul-version.outputs.version }}"
+          echo "Tag qui serait créé : v$VERSION"
+          echo "Image Docker : mon-app:$VERSION"

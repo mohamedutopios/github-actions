@@ -1,0 +1,29 @@
+# ============================================================
+# DÉMO 1/4 — Jobs & Steps : un job, un seul step
+# ============================================================
+# La structure la plus simple : un job contenant un step.
+# Un JOB = une machine virtuelle Ubuntu.
+# Un STEP = une action exécutée dans ce job.
+# ============================================================
+
+name: "06 · Un job, un step"
+
+on: workflow_dispatch
+
+jobs:
+
+  #  ┌─────────────────────────────┐
+  #  │  JOB : bonjour              │
+  #  │  Machine : ubuntu-latest    │
+  #  │  ┌─────────────────────┐    │
+  #  │  │ STEP : dire-bonjour │    │
+  #  │  └─────────────────────┘    │
+  #  └─────────────────────────────┘
+
+  bonjour:
+    name: "Job unique"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 👋 Dire bonjour
+        run: echo "Bonjour depuis GitHub Actions !"

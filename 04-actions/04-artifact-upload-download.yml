@@ -1,0 +1,59 @@
+# ============================================================
+# DÉMO 4/4 — Actions : upload-artifact + download-artifact
+# ============================================================
+# Les artifacts permettent de :
+#   - sauvegarder des fichiers produits pendant le workflow
+#   - les partager entre deux jobs (machines différentes !)
+#   - les télécharger depuis l'onglet Actions de GitHub
+#
+# Workflow :
+#   Job "build"  → produit un fichier → l'uploade
+#   Job "deploy" → le télécharge     → l'utilise
+# ============================================================
+
+name: "16 · Artifacts upload + download"
+
+on: workflow_dispatch
+
+jobs:
+
+  # ─── JOB 1 : Crée et uploade un artifact ─────────────────
+  build:
+    name: "📦 Build + Upload artifact"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "🔨 Simuler un build (créer des fichiers)"
+        run: |
+          mkdir -p dist
+          echo "Application compilée — Run ${{ github.run_number }}" > dist/app.js
+          echo "Version : 1.0.${{ github.run_number }}"             > dist/version.txt
+          ls -la dist/
+
+      - name: "⬆️ Uploader l'artifact 'build-dist'"
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-dist            # nom de l'artifact dans GitHub
+          path: dist/                 # dossier à sauvegarder
+          retention-days: 7           # conservé 7 jours (90 par défaut)
+
+  # ─── JOB 2 : Télécharge et utilise l'artifact ────────────
+  deploy:
+    name: "🚀 Download artifact + Deploy"
+    runs-on: ubuntu-latest
+    needs: build                      # attend que build soit terminé
+
+    steps:
+      - name: "⬇️ Télécharger l'artifact 'build-dist'"
+        uses: actions/download-artifact@v4
+        with:
+          name: build-dist            # même nom qu'à l'upload
+          path: ./dist-telecharge/    # où le déposer localement
+
+      - name: "🔍 Vérifier le contenu reçu"
+        run: |
+          echo "Fichiers reçus :"
+          ls -la dist-telecharge/
+          echo ""
+          echo "Contenu de app.js :"
+          cat dist-telecharge/app.js

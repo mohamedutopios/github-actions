@@ -1,0 +1,61 @@
+# ============================================================
+# DÉMO 1/4 — Variables : env: global vs local
+# ============================================================
+# Les variables d'environnement se définissent avec "env:"
+# à trois niveaux différents (portée croissante) :
+#
+#   Au niveau du workflow  → disponible dans TOUS les jobs
+#   Au niveau du job       → disponible dans ce job seulement
+#   Au niveau du step      → disponible dans ce step seulement
+#
+# Accès dans un script shell : $NOM_VARIABLE
+# ============================================================
+
+name: "17 · Variables env — portée globale vs locale"
+
+on: workflow_dispatch
+
+# ── Niveau 1 : Variables GLOBALES (tout le workflow) ────────
+env:
+  APP_NAME: "mon-application"
+  VERSION: "2.1.0"
+  ENVIRONNEMENT: "staging"
+
+jobs:
+  demo-portees:
+    name: "Portées des variables"
+    runs-on: ubuntu-latest
+
+    # ── Niveau 2 : Variables du JOB (ce job seulement) ─────
+    env:
+      NOM_JOB: "demo-portees"
+      RUNNER_INFO: "ubuntu-latest"
+
+    steps:
+      - name: "🌍 Afficher les variables globales"
+        run: |
+          echo "=== Variables globales ==="
+          echo "APP_NAME     : $APP_NAME"
+          echo "VERSION      : $VERSION"
+          echo "ENVIRONNEMENT: $ENVIRONNEMENT"
+
+      - name: "🔧 Afficher les variables du job"
+        run: |
+          echo "=== Variables du job ==="
+          echo "NOM_JOB    : $NOM_JOB"
+          echo "RUNNER_INFO: $RUNNER_INFO"
+          echo "(+ les globales sont aussi accessibles)"
+          echo "APP_NAME   : $APP_NAME"
+
+      - name: "📌 Variable locale à ce step uniquement"
+        # ── Niveau 3 : Variable du STEP ──────────────────────
+        env:
+          STEP_MESSAGE: "Je suis visible uniquement dans ce step"
+        run: |
+          echo "=== Variable locale au step ==="
+          echo "STEP_MESSAGE : $STEP_MESSAGE"
+
+      - name: "❌ STEP_MESSAGE n'est plus disponible ici"
+        run: |
+          echo "STEP_MESSAGE : '${STEP_MESSAGE}'"
+          echo "(vide — elle n'existe plus dans ce step)"

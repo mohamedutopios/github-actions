@@ -1,0 +1,50 @@
+# ============================================================
+# DÉMO 3/3 — needs : parallèle puis convergence
+# ============================================================
+# Pattern avancé : deux jobs tournent EN PARALLÈLE,
+# et un troisième attend que LES DEUX soient terminés.
+#
+#   tests-unitaires ─┐
+#                    ├──→ deploiement
+#   verif-style     ─┘
+#
+# needs accepte une liste : needs: [job-a, job-b]
+# Le job attend que TOUS soient réussis.
+# ============================================================
+
+name: "12 · needs — parallèle + convergence"
+
+on: workflow_dispatch
+
+jobs:
+
+  # ─── JOB A ─────────────────────────────────────────────
+  tests-unitaires:
+    name: "🧪 Tests unitaires"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tests unitaires (3s)
+        run: |
+          sleep 3
+          echo "✅ Tests unitaires : OK"
+
+  # ─── JOB B (en parallèle avec A) ───────────────────────
+  verif-style:
+    name: "🎨 Lint & style"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérification du style (1s)
+        run: |
+          sleep 1
+          echo "✅ Lint : OK"
+
+  # ─── JOB C (attend A ET B) ─────────────────────────────
+  deploiement:
+    name: "🚀 Déploiement"
+    runs-on: ubuntu-latest
+    needs: [tests-unitaires, verif-style]  # ← attend les DEUX
+    steps:
+      - name: Déployer seulement si tout est vert
+        run: |
+          echo "✅ Tests OK + Style OK → déploiement autorisé"
+          echo "🚀 Déploiement en cours..."

@@ -1,0 +1,48 @@
+# ============================================================
+# DÉMO 2/4 — Jobs & Steps : un job, plusieurs steps
+# ============================================================
+# Un seul job avec PLUSIEURS steps.
+# Les steps s'exécutent DANS L'ORDRE, un par un.
+# Si un step échoue → les suivants sont annulés.
+# ============================================================
+
+name: "07 · Un job, plusieurs steps"
+
+on: workflow_dispatch
+
+jobs:
+  pipeline:
+    name: "Pipeline séquentiel"
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 — Toujours en premier pour Node.js
+      - name: "📥 Step 1 — Vérifier l'environnement"
+        run: |
+          echo "=== Environnement de la machine ==="
+          echo "OS     : $(uname -s) $(uname -r)"
+          echo "User   : $(whoami)"
+          echo "Dossier: $(pwd)"
+
+      - name: "📦 Step 2 — Lister les outils disponibles"
+        run: |
+          echo "=== Versions des outils pré-installés ==="
+          node --version
+          npm --version
+          python3 --version
+          java --version
+
+      - name: "📝 Step 3 — Créer un fichier"
+        run: |
+          echo "Créé par GitHub Actions le $(date)" > rapport.txt
+          echo "Run : ${{ github.run_number }}"      >> rapport.txt
+          cat rapport.txt
+
+      - name: "🔍 Step 4 — Vérifier que le fichier existe"
+        run: |
+          if [ -f rapport.txt ]; then
+            echo "✅ rapport.txt trouvé ($(wc -c < rapport.txt) octets)"
+          else
+            echo "❌ rapport.txt introuvable !"
+            exit 1
+          fi

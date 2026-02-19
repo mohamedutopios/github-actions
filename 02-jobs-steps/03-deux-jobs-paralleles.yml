@@ -1,0 +1,36 @@
+# ============================================================
+# DÉMO 3/4 — Jobs & Steps : deux jobs en PARALLÈLE
+# ============================================================
+# Sans "needs:", les jobs démarrent en même temps.
+# Chaque job tourne sur SA PROPRE machine virtuelle.
+# Les fichiers créés dans job-a ne sont PAS accessibles
+# dans job-b (machines séparées !).
+# ============================================================
+
+name: "08 · Deux jobs en parallèle"
+
+on: workflow_dispatch
+
+jobs:
+
+  # ─── JOB A — Tourne en même temps que job-b ─────────────
+  tests-unitaires:
+    name: "🧪 Tests unitaires"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simuler les tests unitaires
+        run: |
+          echo "🧪 Lancement des tests unitaires..."
+          sleep 3
+          echo "✅ 12 tests passés, 0 échoué"
+
+  # ─── JOB B — Tourne en même temps que job-a ─────────────
+  verif-style:
+    name: "🎨 Vérification du style"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Simuler la vérification du style (lint)
+        run: |
+          echo "🎨 Vérification du style du code..."
+          sleep 2
+          echo "✅ Aucune erreur de style détectée"

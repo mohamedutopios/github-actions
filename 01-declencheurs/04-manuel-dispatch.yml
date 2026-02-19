@@ -1,0 +1,44 @@
+# ============================================================
+# DÉMO 4/5 — Déclencheur : manuel (workflow_dispatch)
+# ============================================================
+# Ce workflow ajoute un bouton "Run workflow" dans l'onglet
+# Actions de GitHub. Vous cliquez quand vous voulez.
+#
+# On peut aussi ajouter des INPUTS : des champs de saisie
+# que l'utilisateur remplit au moment du déclenchement.
+#
+# Essayez :
+#   1. Allez dans Actions → "04 · Déclenchement manuel"
+#   2. Cliquez "Run workflow"
+#   3. Renseignez les champs et lancez
+# ============================================================
+
+name: "04 · Déclenchement manuel"
+
+on:
+  workflow_dispatch:
+    inputs:
+      environnement:
+        description: "Vers quel environnement déployer ?"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+      message:
+        description: "Message optionnel (note de déploiement)"
+        required: false
+        default: "Déploiement manuel"
+
+jobs:
+  lancer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🖱️ Afficher les paramètres saisis
+        run: |
+          echo "🚀 Workflow déclenché manuellement"
+          echo "👤 Par          : ${{ github.actor }}"
+          echo "🌍 Environnement: ${{ inputs.environnement }}"
+          echo "📝 Message      : ${{ inputs.message }}"

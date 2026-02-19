@@ -1,0 +1,45 @@
+# ============================================================
+# DÉMO 2/4 — Actions : setup-node + cache npm
+# ============================================================
+# "actions/setup-node" installe et configure Node.js.
+# L'option "cache: 'npm'" met node_modules en cache
+# pour accélérer les prochains runs (évite de tout
+# retélécharger à chaque fois).
+#
+# Avec "with:", on passe des paramètres à l'action,
+# comme des arguments de fonction.
+# ============================================================
+
+name: "14 · Action setup-node + cache"
+
+on: workflow_dispatch
+
+jobs:
+  demo-node:
+    name: "setup-node avec cache npm"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "⚙️ Configurer Node.js 20 avec cache npm"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"        # version de Node.js à installer
+          cache: "npm"              # met ~/.npm en cache entre les runs
+
+      - name: "🔍 Vérifier la version installée"
+        run: |
+          echo "Node  : $(node --version)"
+          echo "npm   : $(npm --version)"
+          echo "npx   : $(npx --version)"
+
+      - name: "📦 Installer les dépendances (si package.json existe)"
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+            echo "✅ Dépendances installées"
+          else
+            echo "ℹ️ Pas de package.json dans ce dépôt"
+          fi

@@ -1,0 +1,45 @@
+# ============================================================
+# DÉMO 4/4 — Jobs & Steps : continue-on-error et if:
+# ============================================================
+# Deux options utiles pour contrôler le comportement
+# en cas d'échec d'un step :
+#
+#   continue-on-error: true
+#     → le step peut échouer sans bloquer le job
+#
+#   if: failure()
+#     → n'exécute ce step QUE si un précédent a échoué
+#
+#   if: always()
+#     → exécute ce step quoi qu'il arrive (même en erreur)
+# ============================================================
+
+name: "09 · continue-on-error et conditions if:"
+
+on: workflow_dispatch
+
+jobs:
+  demo-conditions:
+    name: "Gestion des erreurs et conditions"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "✅ Step 1 — Réussite normale"
+        run: echo "Ce step réussit normalement"
+
+      - name: "⚠️ Step 2 — Échec autorisé (non bloquant)"
+        run: |
+          echo "Ce step va échouer, mais le job continue..."
+          exit 1
+        continue-on-error: true    # ← ne bloque pas le job
+
+      - name: "✅ Step 3 — Exécuté quand même"
+        run: echo "Je tourne malgré l'échec du step 2"
+
+      - name: "🚨 Step 4 — Alerte en cas d'erreur réelle"
+        if: failure()             # ← ne tourne QUE si un step a vraiment échoué
+        run: echo "🚨 Quelque chose a échoué ! Envoyer une alerte..."
+
+      - name: "🧹 Step 5 — Nettoyage toujours exécuté"
+        if: always()              # ← tourne toujours, succès OU échec
+        run: echo "🧹 Nettoyage effectué (toujours exécuté)"

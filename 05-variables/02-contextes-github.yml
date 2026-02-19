@@ -1,0 +1,56 @@
+# ============================================================
+# DÉMO 2/4 — Variables : contextes GitHub ${{ github.xxx }}
+# ============================================================
+# GitHub injecte automatiquement des informations sur le run
+# via des "contextes". Syntaxe : ${{ github.propriete }}
+#
+# Ces variables sont différentes des variables d'env shell :
+#   $NOM_VAR          → variable shell classique
+#   ${{ github.xxx }} → contexte GitHub Actions (expression)
+#
+# Les deux peuvent être mixés dans un même run:
+# ============================================================
+
+name: "18 · Contextes github.xxx"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  afficher-contextes:
+    name: "Toutes les infos du contexte"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "🏠 Informations sur le dépôt"
+        run: |
+          echo "=== Dépôt ==="
+          echo "Dépôt          : ${{ github.repository }}"
+          echo "Propriétaire   : ${{ github.repository_owner }}"
+          echo "URL            : ${{ github.server_url }}/${{ github.repository }}"
+
+      - name: "⚡ Informations sur l'événement"
+        run: |
+          echo "=== Événement ==="
+          echo "Type           : ${{ github.event_name }}"
+          echo "Branche        : ${{ github.ref_name }}"
+          echo "Ref complète   : ${{ github.ref }}"
+
+      - name: "👤 Informations sur l'auteur"
+        run: |
+          echo "=== Auteur ==="
+          echo "Acteur         : ${{ github.actor }}"
+
+      - name: "🔖 Informations sur le commit"
+        run: |
+          echo "=== Commit ==="
+          echo "SHA complet    : ${{ github.sha }}"
+          echo "SHA court      : ${GITHUB_SHA:0:7}"
+
+      - name: "🔢 Informations sur le run"
+        run: |
+          echo "=== Run ==="
+          echo "Numéro         : ${{ github.run_number }}"
+          echo "ID             : ${{ github.run_id }}"
+          echo "URL du run     : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

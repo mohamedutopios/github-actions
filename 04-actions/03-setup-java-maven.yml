@@ -1,0 +1,45 @@
+# ============================================================
+# DÉMO 3/4 — Actions : setup-java + cache Maven
+# ============================================================
+# "actions/setup-java" installe le JDK sur la machine.
+#
+# Paramètres importants :
+#   java-version : "17", "21"…
+#   distribution : "temurin" (Eclipse Adoptium — recommandé)
+#                  "zulu", "corretto" (AWS), "microsoft"
+#   cache        : "maven" ou "gradle" pour accélérer les builds
+# ============================================================
+
+name: "15 · Action setup-java + Maven"
+
+on: workflow_dispatch
+
+jobs:
+  demo-java:
+    name: "setup-java avec cache Maven"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "☕ Configurer Java 17 (Temurin) avec cache Maven"
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"         # version du JDK
+          distribution: "temurin"    # distribution (Eclipse Adoptium)
+          cache: "maven"             # met ~/.m2/repository en cache
+
+      - name: "🔍 Vérifier la version installée"
+        run: |
+          echo "Java  : $(java --version)"
+          echo "Javac : $(javac --version)"
+
+      - name: "🔨 Builder avec Maven (si pom.xml existe)"
+        run: |
+          if [ -f pom.xml ]; then
+            mvn -B verify --no-transfer-progress
+            echo "✅ Build Maven réussi"
+          else
+            echo "ℹ️ Pas de pom.xml dans ce dépôt"
+          fi

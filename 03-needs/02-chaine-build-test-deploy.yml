@@ -1,0 +1,51 @@
+# ============================================================
+# DÉMO 2/3 — needs : chaîne complète build → test → deploy
+# ============================================================
+# Un pipeline CI/CD réaliste en 3 étapes :
+#
+#   build ──→ tests ──→ deploiement
+#
+# Chaque job attend le précédent. Si l'un échoue,
+# toute la chaîne s'arrête.
+# ============================================================
+
+name: "11 · needs — chaîne build → test → deploy"
+
+on: workflow_dispatch
+
+jobs:
+
+  # ─── ÉTAPE 1 : Build ────────────────────────────────────
+  build:
+    name: "🔨 1 · Build"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compiler l'application
+        run: |
+          echo "📦 Compilation en cours..."
+          sleep 2
+          echo "✅ Build réussi"
+
+  # ─── ÉTAPE 2 : Tests (attend build) ─────────────────────
+  tests:
+    name: "🧪 2 · Tests"
+    runs-on: ubuntu-latest
+    needs: build                   # ← attend build
+    steps:
+      - name: Lancer les tests
+        run: |
+          echo "🧪 Tests en cours..."
+          sleep 2
+          echo "✅ 24 tests passés"
+
+  # ─── ÉTAPE 3 : Deploy (attend tests) ────────────────────
+  deploiement:
+    name: "🚀 3 · Déploiement"
+    runs-on: ubuntu-latest
+    needs: tests                   # ← attend tests (et donc build implicitement)
+    steps:
+      - name: Déployer en production
+        run: |
+          echo "🚀 Déploiement en production..."
+          sleep 1
+          echo "✅ Application en ligne !"

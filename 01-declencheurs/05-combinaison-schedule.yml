@@ -1,0 +1,43 @@
+# ============================================================
+# DÉMO 5/5 — Déclencheur : planifié + combinaison
+# ============================================================
+# On combine TROIS déclencheurs dans un seul workflow :
+#   1. push  → sur main et develop
+#   2. pull_request → vers main
+#   3. schedule → tous les lundis à 8h00 UTC (9h Paris hiver)
+#
+# Syntaxe cron :  minute  heure  jour  mois  jour_semaine
+#                   0       8     *     *       1
+#   0 = dimanche, 1 = lundi … 5 = vendredi, 6 = samedi
+#
+# ⚠️ L'heure est en UTC. France = UTC+1 (hiver) ou UTC+2 (été)
+# ============================================================
+
+name: "05 · Combinaison + schedule"
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+
+  schedule:
+    - cron: "0 8 * * 1"   # Tous les lundis à 8h00 UTC
+
+  workflow_dispatch:       # Aussi déclenché manuellement
+
+jobs:
+  rapport:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📊 Identifier l'origine du déclenchement
+        run: |
+          echo "✅ Workflow lancé !"
+          echo "⚡ Événement    : ${{ github.event_name }}"
+          echo "👤 Acteur       : ${{ github.actor }}"
+          echo "🌿 Branche      : ${{ github.ref_name }}"
+          echo "🔢 Run n°       : ${{ github.run_number }}"

@@ -1,0 +1,42 @@
+# ============================================================
+# DÉMO 1/4 — Actions : actions/checkout
+# ============================================================
+# "actions/checkout" est l'action la plus utilisée.
+# Elle clone votre dépôt sur la machine du runner.
+# Sans elle, votre code n'est pas disponible.
+#
+# Syntaxe :
+#   uses: owner/action@version
+#
+# Le "@v4" est la version — toujours la préciser !
+# ============================================================
+
+name: "13 · Action checkout"
+
+on: workflow_dispatch
+
+jobs:
+  demo-checkout:
+    name: "actions/checkout en action"
+    runs-on: ubuntu-latest
+
+    steps:
+      # AVANT checkout : le dépôt n'est pas disponible
+      - name: "❌ Avant checkout — dossier vide"
+        run: |
+          echo "Fichiers disponibles avant checkout :"
+          ls -la
+          echo "(la liste est presque vide)"
+
+      # L'action checkout clone le dépôt
+      - name: "📥 Checkout du dépôt"
+        uses: actions/checkout@v4
+
+      # APRÈS checkout : le code est disponible
+      - name: "✅ Après checkout — dépôt présent"
+        run: |
+          echo "Fichiers disponibles après checkout :"
+          ls -la
+          echo ""
+          echo "Dernier commit :"
+          git log -1 --oneline

@@ -1,0 +1,39 @@
+# ============================================================
+# DÉMO 1/3 — needs : deux jobs séquentiels
+# ============================================================
+# Avec "needs:", le job "deploiement" attend que le job
+# "tests" soit terminé avec SUCCÈS avant de démarrer.
+#
+# Si "tests" échoue → "deploiement" est annulé.
+# C'est la garde-fou fondamentale : jamais déployer
+# sans que les tests soient passés.
+# ============================================================
+
+name: "10 · needs — séquentiel simple"
+
+on: workflow_dispatch
+
+jobs:
+
+  # ─── JOB 1 ─────────────────────────────────────────────
+  tests:
+    name: "🧪 1 · Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lancer les tests
+        run: |
+          echo "Tests en cours..."
+          sleep 2
+          echo "✅ Tous les tests passent"
+
+  # ─── JOB 2 (attend JOB 1) ──────────────────────────────
+  deploiement:
+    name: "🚀 2 · Déploiement"
+    runs-on: ubuntu-latest
+    needs: tests                   # ← attend que "tests" réussisse
+    steps:
+      - name: Déployer l'application
+        run: |
+          echo "Tests OK ✅, déploiement en cours..."
+          sleep 1
+          echo "🚀 Application déployée avec succès !"
