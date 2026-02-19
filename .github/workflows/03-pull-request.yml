@@ -8,6 +8,7 @@
 # C'est le déclencheur idéal pour valider du code
 # AVANT qu'il soit fusionné dans main.
 #
+
 # Essayez :
 #   1. Créez une branche : git checkout -b feature/test
 #   2. Faites un commit et poussez
