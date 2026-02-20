@@ -11,7 +11,7 @@
 
 name: "01 · Push simple"
 
-on: push
+on: {}
 
 jobs:
   afficher-info:
