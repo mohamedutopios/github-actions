@@ -1,0 +1,93 @@
+# =============================================================
+# TP CORRIGÉ — Pipeline CI/CD complet · utopios-app
+# Concepts : déclencheurs · jobs & steps · needs
+# =============================================================
+
+name: "Pipeline CI/CD · utopios-app"
+
+# ─────────────────────────────────────────────────────────────
+# ÉTAPE 1 — DÉCLENCHEURS
+# ─────────────────────────────────────────────────────────────
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environnement cible"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+# ─────────────────────────────────────────────────────────────
+# ÉTAPES 2 & 3 — JOBS, STEPS ET ORCHESTRATION
+#
+#   lint ──┐
+#          ├──→ build ──→ deploy (main uniquement)
+#   tests ─┘
+# ─────────────────────────────────────────────────────────────
+jobs:
+
+  lint:
+    name: "🎨 Lint — Vérification du style"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Analyser le style du code"
+        run: |
+          echo "Analyse du style en cours..."
+          sleep 2
+
+      - name: "Confirmer le résultat"
+        run: echo "✅ Aucune erreur de style détectée"
+
+  tests:
+    name: "🧪 Tests — Tests automatisés"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Préparer les tests"
+        run: echo "Lancement des tests..."
+
+      - name: "Exécuter les tests"
+        run: |
+          sleep 4
+          echo "✅ 21 tests passés, 0 échoué"
+
+      - name: "Générer le rapport de tests"
+        if: always()
+        run: echo "Rapport de tests généré"
+
+  build:
+    name: "🔨 Build — Compilation"
+    runs-on: ubuntu-latest
+    needs: [lint, tests]
+    steps:
+      - name: "Compiler l'application"
+        run: |
+          echo "Compilation de utopios-app..."
+          sleep 3
+
+      - name: "Confirmer le build"
+        run: echo "✅ Build réussi — artefact prêt"
+
+  deploy:
+    name: "🚀 Deploy — Déploiement"
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref_name == 'main'
+    steps:
+      - name: "Déployer l'application"
+        run: |
+          ENV="${{ inputs.environment }}"
+          echo "Déploiement sur ${ENV:-staging}..."
+
+      - name: "Confirmer le déploiement"
+        run: echo "✅ utopios-app est en ligne !"

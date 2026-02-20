@@ -1,0 +1,142 @@
+
+		<head>
+			<style type="text/css" media="screen">
+				body,html{font-family:var(--markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif);font-size:var(--markdown-font-size,14px);padding:0 26px;line-height:var(--markdown-line-height,22px);word-wrap:break-word}body{padding-top:1em}h1,h2,h3,h4,h5,h6,ol,p,pre,ul{margin-top:0}h2,h3,h4,h5,h6{font-weight:400;margin-bottom:.2em}img{max-width:100%;max-height:100%}a{text-decoration:none}a:hover{text-decoration:underline}a:focus,input:focus,select:focus,textarea:focus{outline:1px solid -webkit-focus-ring-color;outline-offset:-1px}p{margin-bottom:.7em}ol,ul{margin-bottom:.7em}hr{border:0;height:2px;border-bottom:2px solid}h1{padding-bottom:.3em;line-height:1.2;border-bottom-width:1px;border-bottom-style:solid;font-weight:400}table{border-collapse:collapse}th{text-align:left;border-bottom:1px solid}td,th{padding:5px 10px}table>tbody>tr+tr>td{border-top:1px solid}blockquote{margin:0 7px 0 5px;padding:0 16px 0 10px;border-left-width:5px;border-left-style:solid}code{font-family:var(--vscode-editor-font-family, "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace);font-size:1em;line-height:1.357em}body.wordWrap pre{white-space:pre-wrap}pre.hljs code>div,pre:not(.hljs){padding:16px;border-radius:3px;overflow:auto}pre code{color:var(--vscode-editor-foreground);tab-size:4}
+			</style>
+		</head>
+		<body>
+			<h1 id="tp-github-actions--pipeline-cicd-complet">TP GitHub Actions — Pipeline CI/CD complet</h1>
+<p><strong>Formation GitHub Actions · Utopios × Mohamed</strong>
+ · Un seul fichier <code>.yml</code> à construire</p>
+<hr>
+<h2 id="contexte">Contexte</h2>
+<p>Vous intégrez l&#39;équipe DevOps d&#39;une startup. Votre mission : mettre en place le pipeline CI/CD de l&#39;application <code>utopios-app</code> de zéro, en un seul fichier GitHub Actions.</p>
+<p>Ce pipeline doit :</p>
+<ul>
+<li>se déclencher automatiquement sur les bons événements</li>
+<li>exécuter des contrôles qualité en parallèle</li>
+<li>enchaîner les étapes dans le bon ordre</li>
+<li>déployer uniquement quand tout est vert</li>
+</ul>
+<hr>
+<h2 id="mise-en-place">Mise en place</h2>
+<p>Créez un dépôt GitHub public nommé <strong><code>utopios-app</code></strong>, clonez-le, puis créez le dossier des workflows :</p>
+<pre><code class="language-bash">git clone https://github.com/VOTRE_USERNAME/utopios-app.git
+cd utopios-app
+mkdir -p .github/workflows
+</code></pre>
+<p>Tout votre travail se fera dans un seul fichier :</p>
+<pre><code>.github/workflows/pipeline.yml
+</code></pre>
+<hr>
+<h2 id="travail-demandé">Travail demandé</h2>
+<h3 id="étape-1--les-déclencheurs">Étape 1 — Les déclencheurs</h3>
+<p>Configurez le workflow pour qu&#39;il se déclenche dans <strong>trois situations</strong> :</p>
+<ol>
+<li>À chaque <code>push</code> sur les branches <code>main</code> et <code>develop</code> uniquement</li>
+<li>À chaque <code>pull_request</code> ciblant la branche <code>main</code></li>
+<li>Manuellement, avec un paramètre <code>environment</code> au choix entre <code>staging</code> et <code>production</code></li>
+</ol>
+<blockquote>
+<p><strong>Vérification :</strong> poussez le fichier sur <code>main</code>. Le workflow doit apparaître dans l&#39;onglet Actions. Ensuite, créez une branche <code>feature/test</code>, poussez dessus : aucun run ne doit se déclencher.</p>
+</blockquote>
+<hr>
+<h3 id="étape-2--les-jobs-et-leurs-steps">Étape 2 — Les jobs et leurs steps</h3>
+<p>Le pipeline contient <strong>quatre jobs</strong>. Pour l&#39;instant, créez-les tous sans <code>needs</code> (ils tourneront en parallèle, vous les enchaînerez à l&#39;étape suivante).</p>
+<p>Chaque job tourne sur <code>ubuntu-latest</code>.</p>
+<p><strong>Job <code>lint</code></strong> — Vérification du style</p>
+<p>Contient 2 steps :</p>
+<ul>
+<li>Step 1 : affiche <code>Analyse du style en cours...</code> puis attend 2 secondes (<code>sleep 2</code>)</li>
+<li>Step 2 : affiche <code>✅ Aucune erreur de style détectée</code></li>
+</ul>
+<p><strong>Job <code>tests</code></strong> — Tests automatisés</p>
+<p>Contient 3 steps :</p>
+<ul>
+<li>Step 1 : affiche <code>Lancement des tests...</code></li>
+<li>Step 2 : attend 4 secondes, affiche <code>✅ 21 tests passés, 0 échoué</code></li>
+<li>Step 3 : doit <strong>toujours s&#39;exécuter</strong>, même si les steps précédents échouent — il affiche <code>Rapport de tests généré</code></li>
+</ul>
+<p><strong>Job <code>build</code></strong> — Compilation</p>
+<p>Contient 2 steps :</p>
+<ul>
+<li>Step 1 : affiche <code>Compilation de utopios-app...</code>, attend 3 secondes</li>
+<li>Step 2 : affiche <code>✅ Build réussi — artefact prêt</code></li>
+</ul>
+<p><strong>Job <code>deploy</code></strong> — Déploiement</p>
+<p>Contient 2 steps :</p>
+<ul>
+<li>Step 1 : affiche <code>Déploiement sur [valeur de l&#39;input environment]...</code></li>
+<li>Step 2 : affiche <code>✅ utopios-app est en ligne !</code></li>
+</ul>
+<blockquote>
+<p><strong>Vérification :</strong> déclenchez manuellement. Les 4 jobs doivent démarrer en même temps. Observez le graphe dans l&#39;onglet Summary.</p>
+</blockquote>
+<hr>
+<h3 id="étape-3--lorchestration-avec-needs">Étape 3 — L&#39;orchestration avec <code>needs</code></h3>
+<p>Les 4 jobs doivent maintenant s&#39;exécuter dans cet ordre précis :</p>
+<pre><code>lint ──┐
+       ├──→ build ──→ deploy
+tests ─┘
+</code></pre>
+<ul>
+<li><code>lint</code> et <code>tests</code> tournent <strong>en parallèle</strong></li>
+<li><code>build</code> attend que <strong>les deux</strong> soient terminés avec succès</li>
+<li><code>deploy</code> attend que <code>build</code> soit terminé</li>
+<li><code>deploy</code> ne s&#39;exécute <strong>que sur la branche <code>main</code></strong></li>
+</ul>
+<blockquote>
+<p><strong>Vérification 1 :</strong> déclenchez manuellement. Le graphe doit refléter exactement le schéma ci-dessus.</p>
+</blockquote>
+<blockquote>
+<p><strong>Vérification 2 :</strong> faites intentionnellement échouer le job <code>tests</code> (ajoutez <code>exit 1</code> dans un de ses steps). Relancez. Les jobs <code>build</code> et <code>deploy</code> doivent être annulés. Le job <code>lint</code> doit lui terminer normalement.</p>
+</blockquote>
+<blockquote>
+<p><strong>Vérification 3 :</strong> retirez le <code>exit 1</code>, poussez sur <code>develop</code>. Le job <code>deploy</code> doit être ignoré (skipped), les 3 autres doivent passer au vert.</p>
+</blockquote>
+<hr>
+<h2 id="critères-de-réussite">Critères de réussite</h2>
+<table>
+<thead>
+<tr>
+<th>Critère</th>
+<th>Vérifié</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Le workflow ne se déclenche pas sur <code>feature/*</code></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Le workflow se déclenche sur push <code>main</code>, push <code>develop</code>, PR vers <code>main</code>, et manuellement</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Le déclenchement manuel affiche bien la valeur de <code>environment</code> dans les logs</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Le step de rapport dans <code>tests</code> s&#39;exécute même en cas d&#39;échec</td>
+<td>☐</td>
+</tr>
+<tr>
+<td><code>lint</code> et <code>tests</code> démarrent simultanément</td>
+<td>☐</td>
+</tr>
+<tr>
+<td><code>build</code> n&#39;attend bien que <code>lint</code> ET <code>tests</code></td>
+<td>☐</td>
+</tr>
+<tr>
+<td><code>deploy</code> s&#39;exécute uniquement sur <code>main</code></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Un échec dans <code>tests</code> annule <code>build</code> et <code>deploy</code> mais pas <code>lint</code></td>
+<td>☐</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>© 2025 Mohamed × Utopios — Formation GitHub Actions</em></p>
+
+		</body>
