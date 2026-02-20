@@ -10,6 +10,10 @@
 # comme des arguments de fonction.
 # ============================================================
 
+# ============================================================
+# DÉMO 2/4 — setup-node + cache npm (version corrigée)
+# ============================================================
+
 name: "14 · Action setup-node + cache"
 
 on: workflow_dispatch
@@ -23,11 +27,30 @@ jobs:
       - name: "📥 Checkout"
         uses: actions/checkout@v4
 
+      # 🔎 Vérifier si un lock file existe
+      - name: "🔍 Détection lock file"
+        id: lockfile
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ⚙️ Setup Node avec cache seulement si lock file présent
       - name: "⚙️ Configurer Node.js 20 avec cache npm"
+        if: steps.lockfile.outputs.found == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "20"        # version de Node.js à installer
-          cache: "npm"              # met ~/.npm en cache entre les runs
+          node-version: "20"
+          cache: "npm"
+
+      # ⚙️ Setup Node sans cache sinon
+      - name: "⚙️ Configurer Node.js 20 (sans cache)"
+        if: steps.lockfile.outputs.found == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
       - name: "🔍 Vérifier la version installée"
         run: |
