@@ -1,0 +1,55 @@
+# ============================================================
+# DÉMO 3/4 — Actions : setup-dotnet + cache NuGet
+# ============================================================
+# "actions/setup-dotnet" installe le SDK .NET sur la machine.
+#
+# Paramètres importants :
+#   dotnet-version : "8.0.x", "9.0.x"…
+#                    Le "x" signifie "dernière version stable
+#                    du patch" — recommandé pour toujours
+#                    avoir les correctifs de sécurité
+#   cache          : true pour mettre ~/.nuget en cache
+#                    et éviter de retélécharger les packages
+# ============================================================
+
+name: "15 · Action setup-dotnet"
+
+on: workflow_dispatch
+
+jobs:
+  demo-dotnet:
+    name: "setup-dotnet avec cache NuGet"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "⚙️ Configurer .NET 8 avec cache NuGet"
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"    # dernière version stable de .NET 8
+          cache: true                # met ~/.nuget/packages en cache
+
+      - name: "🔍 Vérifier la version installée"
+        run: |
+          echo ".NET SDK  : $(dotnet --version)"
+          echo "Runtime   : $(dotnet --list-runtimes | head -1)"
+
+      - name: "🔨 Builder avec dotnet (si .csproj existe)"
+        run: |
+          if [ -f *.csproj ] || [ -f **/*.csproj ] 2>/dev/null; then
+            dotnet build --configuration Release
+            echo "✅ Build .NET réussi"
+          else
+            echo "ℹ️ Pas de .csproj dans ce dépôt"
+          fi
+
+      - name: "🧪 Lancer les tests (si projet de test existe)"
+        run: |
+          if find . -name "*.Tests.csproj" -o -name "*Tests.csproj" | grep -q .; then
+            dotnet test --no-build --configuration Release
+            echo "✅ Tests .NET réussis"
+          else
+            echo "ℹ️ Pas de projet de tests détecté"
+          fi

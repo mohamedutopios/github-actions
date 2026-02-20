@@ -1,0 +1,179 @@
+
+		<head>
+			<style type="text/css" media="screen">
+				body,html{font-family:var(--markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", system-ui, "Ubuntu", "Droid Sans", sans-serif);font-size:var(--markdown-font-size,14px);padding:0 26px;line-height:var(--markdown-line-height,22px);word-wrap:break-word}body{padding-top:1em}h1,h2,h3,h4,h5,h6,ol,p,pre,ul{margin-top:0}h2,h3,h4,h5,h6{font-weight:400;margin-bottom:.2em}img{max-width:100%;max-height:100%}a{text-decoration:none}a:hover{text-decoration:underline}a:focus,input:focus,select:focus,textarea:focus{outline:1px solid -webkit-focus-ring-color;outline-offset:-1px}p{margin-bottom:.7em}ol,ul{margin-bottom:.7em}hr{border:0;height:2px;border-bottom:2px solid}h1{padding-bottom:.3em;line-height:1.2;border-bottom-width:1px;border-bottom-style:solid;font-weight:400}table{border-collapse:collapse}th{text-align:left;border-bottom:1px solid}td,th{padding:5px 10px}table>tbody>tr+tr>td{border-top:1px solid}blockquote{margin:0 7px 0 5px;padding:0 16px 0 10px;border-left-width:5px;border-left-style:solid}code{font-family:var(--vscode-editor-font-family, "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace);font-size:1em;line-height:1.357em}body.wordWrap pre{white-space:pre-wrap}pre.hljs code>div,pre:not(.hljs){padding:16px;border-radius:3px;overflow:auto}pre code{color:var(--vscode-editor-foreground);tab-size:4}
+			</style>
+		</head>
+		<body>
+			<h1 id="tp-github-actions--actions-variables--secrets">TP GitHub Actions — Actions, Variables &amp; Secrets</h1>
+<p><strong>Formation GitHub Actions · Utopios × Mohamed</strong>
+. Un seul fichier <code>.yml</code> à construire</p>
+<hr>
+<h2 id="contexte">Contexte</h2>
+<p>Vous rejoignez l&#39;équipe DevOps de <code>utopios-app</code>, une application Node.js.
+Le pipeline de base existe déjà (TP précédent). Votre mission aujourd&#39;hui :
+le rendre <strong>professionnel</strong> en y intégrant de vraies actions du Marketplace,
+des variables d&#39;environnement structurées, et des secrets sécurisés.</p>
+<p>À la fin, votre pipeline devra :</p>
+<ul>
+<li>utiliser des <strong>actions</strong> pour configurer l&#39;environnement et sauvegarder les résultats</li>
+<li>injecter des <strong>variables</strong> à différentes portées (workflow, job, step)</li>
+<li>utiliser des <strong>secrets</strong> pour les informations sensibles sans jamais les exposer</li>
+</ul>
+<hr>
+<h2 id="mise-en-place">Mise en place</h2>
+<p>Repartez du dépôt <code>utopios-app</code> créé au TP précédent, ou créez-en un nouveau.</p>
+<p>Créez les fichiers suivants à la racine du dépôt :</p>
+<p><strong><code>package.json</code></strong></p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;utopios-app&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;scripts&quot;: {
+    &quot;test&quot;: &quot;node --experimental-vm-modules index.test.js&quot;
+  }
+}
+</code></pre>
+<p><strong><code>index.js</code></strong></p>
+<pre><code class="language-js">function saluer(prenom) {
+  return `Bonjour, ${prenom} !`;
+}
+module.exports = { saluer };
+</code></pre>
+<p><strong><code>index.test.js</code></strong></p>
+<pre><code class="language-js">const { saluer } = require(&#39;./index&#39;);
+const assert = require(&#39;assert&#39;);
+
+assert.strictEqual(saluer(&#39;Mohamed&#39;), &#39;Bonjour, Mohamed !&#39;);
+assert.strictEqual(saluer(&#39;Alice&#39;), &#39;Bonjour, Alice !&#39;);
+console.log(&#39;✅ Tous les tests passent&#39;);
+</code></pre>
+<p>Votre workflow se trouvera dans :</p>
+<pre><code>.github/workflows/pipeline-pro.yml
+</code></pre>
+<hr>
+<h2 id="travail-demandé">Travail demandé</h2>
+<h3 id="étape-1--les-actions">Étape 1 — Les actions</h3>
+<p>Le workflow contient un seul job <code>ci</code> qui tourne sur <code>ubuntu-latest</code> et se déclenche sur <code>push</code> et <code>workflow_dispatch</code>.</p>
+<p>Construisez la séquence de steps suivante dans ce job :</p>
+<p><strong>Step 1 — Récupérer le code</strong>
+Utilisez l&#39;action <code>actions/checkout@v4</code> pour cloner le dépôt sur le runner.
+Vérifiez qu&#39;elle fonctionne en affichant le contenu du dossier courant avec <code>ls -la</code>.</p>
+<p><strong>Step 2 — Configurer Node.js</strong>
+Utilisez l&#39;action <code>actions/setup-node@v4</code> avec la version <code>20</code> et le cache <code>npm</code>.
+Affichez ensuite les versions de <code>node</code> et <code>npm</code> dans les logs.</p>
+<p><strong>Step 3 — Installer les dépendances</strong>
+Exécutez <code>npm install</code> avec la commande shell <code>run:</code>.</p>
+<p><strong>Step 4 — Lancer les tests</strong>
+Exécutez <code>node index.test.js</code> avec <code>run:</code>.</p>
+<p><strong>Step 5 — Sauvegarder les logs de test</strong>
+Créez un fichier <code>test-results/rapport.txt</code> contenant le texte <code>Tests exécutés le</code> suivi de la date (<code>$(date)</code>).
+Puis utilisez l&#39;action <code>actions/upload-artifact@v4</code> pour sauvegarder le dossier <code>test-results/</code> sous le nom <code>rapport-tests</code>.</p>
+<blockquote>
+<p><strong>Vérification :</strong> poussez et allez dans Actions. En bas de la page du run, une section <strong>Artifacts</strong> doit apparaître avec <code>rapport-tests</code> téléchargeable.</p>
+</blockquote>
+<hr>
+<h3 id="étape-2--les-variables">Étape 2 — Les variables</h3>
+<p>Sans changer la structure du job, ajoutez des variables d&#39;environnement à trois niveaux.</p>
+<p><strong>Au niveau du workflow</strong> (sous la clé <code>env:</code> racine, avant <code>jobs:</code>) :</p>
+<ul>
+<li><code>APP_NAME</code> avec la valeur <code>utopios-app</code></li>
+<li><code>NODE_ENV</code> avec la valeur <code>test</code></li>
+</ul>
+<p><strong>Au niveau du job <code>ci</code></strong> (sous la clé <code>env:</code> du job) :</p>
+<ul>
+<li><code>CI</code> avec la valeur <code>true</code></li>
+<li><code>RAPPORT_DIR</code> avec la valeur <code>test-results</code></li>
+</ul>
+<p><strong>Dans un step dédié</strong>, ajoutez un step entre &quot;Installer les dépendances&quot; et &quot;Lancer les tests&quot; qui :</p>
+<ul>
+<li>affiche le nom de l&#39;application (<code>APP_NAME</code>)</li>
+<li>affiche l&#39;environnement (<code>NODE_ENV</code>)</li>
+<li>affiche si on est en mode CI (<code>CI</code>)</li>
+<li>affiche le dossier de rapports (<code>RAPPORT_DIR</code>)</li>
+<li>calcule et affiche un numéro de version dynamique sous la forme <code>1.0.</code> suivi du numéro de run GitHub (<code>github.run_number</code>), et écrit cette valeur dans <code>$GITHUB_OUTPUT</code> sous la clé <code>version</code></li>
+</ul>
+<p>Dans le step &quot;Sauvegarder les logs de test&quot;, modifiez le contenu du fichier <code>rapport.txt</code> pour qu&#39;il inclue aussi la version calculée (récupérée depuis l&#39;output du step précédent).</p>
+<blockquote>
+<p><strong>Vérification :</strong> dans les logs, le step d&#39;affichage doit montrer toutes les variables. Le fichier <code>rapport.txt</code> téléchargé doit contenir le numéro de version.</p>
+</blockquote>
+<hr>
+<h3 id="étape-3--les-secrets">Étape 3 — Les secrets</h3>
+<p>Avant de modifier le workflow, créez deux secrets dans votre dépôt GitHub :</p>
+<p><code>Settings → Secrets and variables → Actions → New repository secret</code></p>
+<table>
+<thead>
+<tr>
+<th>Nom</th>
+<th>Valeur (pour les tests)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>DEPLOY_TOKEN</code></td>
+<td><code>mon-token-de-deploiement-secret</code></td>
+</tr>
+<tr>
+<td><code>NOTIFY_WEBHOOK</code></td>
+<td><code>https://hooks.example.com/test</code></td>
+</tr>
+</tbody></table>
+<p>Maintenant ajoutez deux steps à la fin du job <code>ci</code> :</p>
+<p><strong>Step &quot;Vérifier les secrets&quot;</strong>
+Injectez <code>DEPLOY_TOKEN</code> et <code>NOTIFY_WEBHOOK</code> en variables d&#39;environnement du step.
+Affichez dans les logs :</p>
+<ul>
+<li>la longueur du token (nombre de caractères) sans jamais afficher sa valeur</li>
+<li>les 5 premiers caractères du webhook suivi de <code>***</code></li>
+<li>un message <code>✅ Secrets correctement configurés</code> si les deux sont non vides, ou <code>❌ Secrets manquants</code> sinon</li>
+</ul>
+<p><strong>Step &quot;Simuler une notification&quot;</strong>
+Injectez <code>NOTIFY_WEBHOOK</code> en variable d&#39;environnement du step.
+Affichez : <code>Notification envoyée vers [les 8 premiers caractères du webhook]***</code></p>
+<blockquote>
+<p><strong>Vérification :</strong> dans les logs GitHub, si vous affichez directement la valeur d&#39;un secret, elle apparaît masquée (<code>***</code>). Observez ce comportement en ajoutant temporairement <code>echo $DEPLOY_TOKEN</code> dans le step.</p>
+</blockquote>
+<hr>
+<h2 id="critères-de-réussite">Critères de réussite</h2>
+<table>
+<thead>
+<tr>
+<th>Critère</th>
+<th>Vérifié</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Le code est bien cloné (<code>ls -la</code> montre <code>index.js</code>)</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>La version de Node.js 20.x apparaît dans les logs</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Les tests passent sans erreur</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>L&#39;artifact <code>rapport-tests</code> est téléchargeable après le run</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Les variables <code>APP_NAME</code>, <code>NODE_ENV</code>, <code>CI</code>, <code>RAPPORT_DIR</code> sont visibles dans les logs</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>Le numéro de version dynamique est dans <code>rapport.txt</code></td>
+<td>☐</td>
+</tr>
+<tr>
+<td>La valeur de <code>DEPLOY_TOKEN</code> n&#39;apparaît jamais en clair dans les logs</td>
+<td>☐</td>
+</tr>
+<tr>
+<td>GitHub masque automatiquement la valeur du secret si elle est affichée</td>
+<td>☐</td>
+</tr>
+</tbody></table>
+<hr>
+<p><em>© 2025 Mohamed × Utopios — Formation GitHub Actions</em></p>
+
+		</body>

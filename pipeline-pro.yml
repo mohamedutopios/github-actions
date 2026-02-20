@@ -1,0 +1,155 @@
+# =============================================================
+# TP CORRIGÉ — Actions, Variables & Secrets · utopios-app
+# Concepts : actions Marketplace · variables env · secrets
+# =============================================================
+
+name: "Pipeline Pro · utopios-app"
+
+# ─────────────────────────────────────────────────────────────
+# ÉTAPE 1 — Déclencheurs (repris du TP précédent)
+# ─────────────────────────────────────────────────────────────
+on:
+  push:
+  workflow_dispatch:
+
+# ─────────────────────────────────────────────────────────────
+# ÉTAPE 2 — Variables au niveau WORKFLOW
+# Disponibles dans tous les jobs et tous les steps.
+# ─────────────────────────────────────────────────────────────
+env:
+  APP_NAME: "utopios-app"
+  NODE_ENV: "test"
+
+jobs:
+  ci:
+    name: "🔄 CI — Build, Test & Notify"
+    runs-on: ubuntu-latest
+
+    # ───────────────────────────────────────────────────────
+    # ÉTAPE 2 — Variables au niveau JOB
+    # Disponibles dans tous les steps de ce job uniquement.
+    # ───────────────────────────────────────────────────────
+    env:
+      CI: "true"
+      RAPPORT_DIR: "test-results"
+
+    steps:
+
+      # ─────────────────────────────────────────────────────
+      # ÉTAPE 1 — Action : checkout
+      # Clone le dépôt sur la machine du runner.
+      # Sans ce step, index.js n'existe pas sur le runner.
+      # ─────────────────────────────────────────────────────
+      - name: "📥 Cloner le dépôt"
+        uses: actions/checkout@v4
+
+      - name: "🔍 Vérifier le contenu cloné"
+        run: ls -la
+
+      # ─────────────────────────────────────────────────────
+      # ÉTAPE 1 — Action : setup-node
+      # Installe Node.js 20 et active le cache npm.
+      # Le cache évite de retélécharger node_modules à chaque run.
+      # ─────────────────────────────────────────────────────
+      - name: "⚙️ Configurer Node.js 20"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: "🔍 Vérifier les versions"
+        run: |
+          echo "Node : $(node --version)"
+          echo "npm  : $(npm --version)"
+
+      # ─────────────────────────────────────────────────────
+      # ÉTAPE 1 — Installer les dépendances
+      # Commande shell classique (run:), pas une action.
+      # ─────────────────────────────────────────────────────
+      - name: "📦 Installer les dépendances"
+        run: npm install
+
+      # ─────────────────────────────────────────────────────
+      # ÉTAPE 2 — Afficher les variables et calculer la version
+      # Combine variables globales, variables de job,
+      # et contextes GitHub. Produit un output "version"
+      # réutilisable dans les steps suivants.
+      # ─────────────────────────────────────────────────────
+      - name: "📋 Afficher les variables"
+        id: infos                      # ← id nécessaire pour lire l'output
+        run: |
+          echo "=== Variables du workflow ==="
+          echo "APP_NAME  : $APP_NAME"
+          echo "NODE_ENV  : $NODE_ENV"
+          echo ""
+          echo "=== Variables du job ==="
+          echo "CI        : $CI"
+          echo "RAPPORT_DIR: $RAPPORT_DIR"
+          echo ""
+          VERSION="1.0.${{ github.run_number }}"
+          echo "Version calculée : $VERSION"
+
+          # Écrire la version dans GITHUB_OUTPUT
+          # → sera lisible par les steps suivants via steps.infos.outputs.version
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # ─────────────────────────────────────────────────────
+      # ÉTAPE 1 — Lancer les tests
+      # ─────────────────────────────────────────────────────
+      - name: "🧪 Lancer les tests"
+        run: node index.test.js
+
+      # ─────────────────────────────────────────────────────
+      # ÉTAPES 1 & 2 — Créer le rapport et uploader l'artifact
+      # Le rapport inclut la version calculée dans le step précédent,
+      # lue via steps.infos.outputs.version.
+      # L'action upload-artifact sauvegarde le dossier
+      # et le rend téléchargeable depuis l'onglet Actions.
+      # ─────────────────────────────────────────────────────
+      - name: "📄 Créer le rapport"
+        run: |
+          mkdir -p $RAPPORT_DIR
+          echo "Application  : $APP_NAME"                              > $RAPPORT_DIR/rapport.txt
+          echo "Version      : ${{ steps.infos.outputs.version }}"   >> $RAPPORT_DIR/rapport.txt
+          echo "Environnement: $NODE_ENV"                             >> $RAPPORT_DIR/rapport.txt
+          echo "Exécuté le   : $(date)"                               >> $RAPPORT_DIR/rapport.txt
+          cat $RAPPORT_DIR/rapport.txt
+
+      - name: "⬆️ Sauvegarder le rapport (artifact)"
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-tests
+          path: ${{ env.RAPPORT_DIR }}/
+          retention-days: 7
+
+      # ─────────────────────────────────────────────────────
+      # ÉTAPE 3 — Vérifier les secrets
+      # Les secrets sont injectés via env: au niveau du step.
+      # Bonne pratique : ne jamais écrire ${{ secrets.X }}
+      # directement dans run: — toujours passer par env:.
+      # ─────────────────────────────────────────────────────
+      - name: "🔐 Vérifier les secrets"
+        env:
+          DEPLOY_TOKEN:    ${{ secrets.DEPLOY_TOKEN }}
+          NOTIFY_WEBHOOK:  ${{ secrets.NOTIFY_WEBHOOK }}
+        run: |
+          echo "=== Vérification des secrets ==="
+
+          if [ -z "$DEPLOY_TOKEN" ] || [ -z "$NOTIFY_WEBHOOK" ]; then
+            echo "❌ Secrets manquants — vérifiez la configuration"
+          else
+            echo "✅ Secrets correctement configurés"
+            echo "Token    : ${#DEPLOY_TOKEN} caractères"
+            echo "Webhook  : ${NOTIFY_WEBHOOK:0:5}***"
+          fi
+
+      # ─────────────────────────────────────────────────────
+      # ÉTAPE 3 — Simuler une notification
+      # On utilise uniquement les caractères non-sensibles
+      # du webhook pour identifier la destination dans les logs.
+      # ─────────────────────────────────────────────────────
+      - name: "🔔 Simuler une notification"
+        env:
+          NOTIFY_WEBHOOK: ${{ secrets.NOTIFY_WEBHOOK }}
+        run: |
+          echo "Notification envoyée vers ${NOTIFY_WEBHOOK:0:8}***"
