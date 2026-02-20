@@ -31,6 +31,7 @@ jobs:
           npm --version
           python3 --version
           java --version
+          dotnet --version
 
       - name: "📝 Step 3 — Créer un fichier"
         run: |
