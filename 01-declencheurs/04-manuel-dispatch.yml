@@ -36,9 +36,9 @@ jobs:
   lancer:
     runs-on: ubuntu-latest
     steps:
-      - name: 🖱️ Afficher les paramètres saisis
+      - name:  Afficher les paramètres saisis
         run: |
-          echo "🚀 Workflow déclenché manuellement"
-          echo "👤 Par          : ${{ github.actor }}"
-          echo "🌍 Environnement: ${{ inputs.environnement }}"
-          echo "📝 Message      : ${{ inputs.message }}"
+          echo " Workflow déclenché manuellement"
+          echo " Par          : ${{ github.actor }}"
+          echo " Environnement: ${{ inputs.environnement }}"
+          echo " Message      : ${{ inputs.message }}"

@@ -26,9 +26,9 @@ on:
       - main
 
   schedule:
-    - cron: "0 7 * * 5"   # Tous les lundis à 8h00 UTC
+    - cron: "0 7 * * 5"   
 
-  workflow_dispatch:       # Aussi déclenché manuellement
+  workflow_dispatch:       
 
 jobs:
   rapport:

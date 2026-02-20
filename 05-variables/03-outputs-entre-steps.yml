@@ -1,5 +1,5 @@
 # ============================================================
-# DÉMO 3/4 — Variables : sortie dynamique entre steps
+# DÉMO 3/4 — Variables : sortie dynamique entre steps et jobs
 # ============================================================
 # Un step peut PRODUIRE une valeur qu'un step suivant
 # peut LIRE. Mécanisme : GITHUB_OUTPUT
@@ -7,21 +7,29 @@
 # Écrire une valeur (dans step A) :
 #   echo "ma_cle=ma_valeur" >> $GITHUB_OUTPUT
 #
-# Lire la valeur (dans step B) :
+# Lire la valeur (dans step B, même job) :
 #   ${{ steps.id_step_a.outputs.ma_cle }}
 #
-# Très utile pour passer des infos entre steps :
-# version calculée, numéro de build, date, etc.
+# Lire la valeur (dans un autre job) :
+#   ${{ needs.id_job.outputs.ma_cle }}
+#   ⚠️ Nécessite de déclarer "outputs:" sur le job source
+#   ⚠️ Nécessite "needs: id_job" sur le job destinataire
 # ============================================================
 
-name: "19 · Sorties dynamiques entre steps"
+name: "19 · Sorties dynamiques entre steps et jobs"
 
 on: workflow_dispatch
 
 jobs:
+  # ─── Job 1 — Produit les valeurs ───────────────────────────
   demo-outputs:
     name: "Passer des valeurs entre steps"
     runs-on: ubuntu-latest
+
+    # Déclare les sorties du job pour les exposer aux autres jobs
+    outputs:
+      version:    ${{ steps.calcul-version.outputs.version }}
+      date_build: ${{ steps.calcul-version.outputs.date_build }}
 
     steps:
       # Step A — Produit deux valeurs de sortie
@@ -34,8 +42,8 @@ jobs:
           echo "📌 Date du build    : $DATE"
 
           # Écrire les sorties dans GITHUB_OUTPUT
-          echo "version=$VERSION"  >> $GITHUB_OUTPUT
-          echo "date_build=$DATE"  >> $GITHUB_OUTPUT
+          echo "version=$VERSION"     >> $GITHUB_OUTPUT
+          echo "date_build=$DATE"     >> $GITHUB_OUTPUT
 
       # Step B — Lit les valeurs produites par step A
       - name: "📖 Step B — Utiliser la version calculée"
@@ -48,5 +56,24 @@ jobs:
       - name: "🏷️ Step C — Créer un tag avec la version"
         run: |
           VERSION="${{ steps.calcul-version.outputs.version }}"
+          echo "Tag qui serait créé : v$VERSION"
+          echo "Image Docker : mon-app:$VERSION"
+
+  # ─── Job 2 — Lit les valeurs du Job 1 ──────────────────────
+  demo-outputs-between-jobs:
+    name: "Passer des valeurs entre jobs"
+    runs-on: ubuntu-latest
+    needs: demo-outputs   # ← attend que le job "demo-outputs" soit terminé
+
+    steps:
+      - name: "📖 Lire les sorties du job précédent"
+        run: |
+          echo "=== Valeurs reçues depuis Job 1 ==="
+          echo "Version    : ${{ needs.demo-outputs.outputs.version }}"
+          echo "Date build : ${{ needs.demo-outputs.outputs.date_build }}"
+
+      - name: "🏷️ Utiliser la version pour un tag Docker"
+        run: |
+          VERSION="${{ needs.demo-outputs.outputs.version }}"
           echo "Tag qui serait créé : v$VERSION"
           echo "Image Docker : mon-app:$VERSION"

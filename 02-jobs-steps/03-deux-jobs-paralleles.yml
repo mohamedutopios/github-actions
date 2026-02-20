@@ -13,24 +13,24 @@ on: workflow_dispatch
 
 jobs:
 
-  # ─── JOB A — Tourne en même temps que job-b ─────────────
+
   tests-unitaires:
-    name: "🧪 Tests unitaires"
+    name: " Tests unitaires"
     runs-on: ubuntu-latest
     steps:
       - name: Simuler les tests unitaires
         run: |
-          echo "🧪 Lancement des tests unitaires..."
+          echo " Lancement des tests unitaires..."
           sleep 3
-          echo "✅ 12 tests passés, 0 échoué"
+          echo " 12 tests passés, 0 échoué"
 
-  # ─── JOB B — Tourne en même temps que job-a ─────────────
+
   verif-style:
-    name: "🎨 Vérification du style"
+    name: " Vérification du style"
     runs-on: ubuntu-latest
     steps:
       - name: Simuler la vérification du style (lint)
         run: |
-          echo "🎨 Vérification du style du code..."
+          echo " Vérification du style du code..."
           sleep 2
-          echo "✅ Aucune erreur de style détectée"
+          echo " Aucune erreur de style détectée"

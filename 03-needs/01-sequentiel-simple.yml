@@ -15,7 +15,7 @@ on: workflow_dispatch
 
 jobs:
 
-  # ─── JOB 1 ─────────────────────────────────────────────
+ 
   tests:
     name: "🧪 1 · Tests"
     runs-on: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
           sleep 2
           echo "✅ Tous les tests passent"
 
-  # ─── JOB 2 (attend JOB 1) ──────────────────────────────
+
   deploiement:
     name: "🚀 2 · Déploiement"
     runs-on: ubuntu-latest

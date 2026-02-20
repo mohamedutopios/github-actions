@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: "✅ Step 1 — Réussite normale"
+      - name: " Step 1 — Réussite normale"
         run: echo "Ce step réussit normalement"
 
-      - name: "⚠️ Step 2 — Échec autorisé (non bloquant)"
+      - name: " Step 2 — Échec autorisé (non bloquant)"
         run: |
           echo "Ce step va échouer, mais le job continue..."
           exit 1
