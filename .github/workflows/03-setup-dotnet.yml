@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"    # dernière version stable de .NET 8
-          cache: true                # met ~/.nuget/packages en cache
+          cache: false               # met ~/.nuget/packages en cache
 
       - name: "🔍 Vérifier la version installée"
         run: |
